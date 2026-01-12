@@ -1,0 +1,39 @@
+{
+    "$schema": "https://developer.microsoft.com/json-schemas/teams/vDevPreview/MicrosoftTeams.schema.json",
+    "manifestVersion": "devPreview",
+    "version": "${{TEAMS_APP_VERSION}}",
+    "id": "${{TEAMS_APP_ID}}",
+    "developer": {
+        "name": "Microsoft",
+        "websiteUrl": "https://www.example.com",
+        "privacyUrl": "https://www.example.com/privacy",
+        "termsOfUseUrl": "https://www.example.com/termofuse"
+    },
+    "icons": {
+        "color": "logo.png",
+        "outline": "outline.png"
+    },
+    "name": {
+        "short": "${{NAME_FOR_HUMAN}}",
+        "full": "${{NAME_FOR_HUMAN}}"
+    },
+    "description": {
+        "short": "${{NAME_FOR_HUMAN}}",
+        "full": "${{NAME_FOR_HUMAN}} agent has access to multiple knowledge sources to help employees find information and get answers quickly and easily."
+    },
+    "accentColor": "#FFFFFF",
+    "composeExtensions": [],
+    "permissions": [
+        "identity",
+        "messageTeamMembers"
+    ],
+    "copilotAgents": {
+        "declarativeAgents": [
+            {
+                "id": "declarativeAgent",
+                "file": "declarativeAgent.json"
+            }
+        ]
+    },
+    "validDomains": []
+}

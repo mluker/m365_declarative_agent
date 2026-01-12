@@ -1,0 +1,64 @@
+{
+    "$schema": "https://aka.ms/json-schemas/copilot-extensions/v2.1/plugin.schema.json",
+    "schema_version": "v2.4",
+    "name_for_human": "${{NAME_FOR_HUMAN}}",
+    "description_for_human": "${{NAME_FOR_HUMAN}}${{APP_NAME_SUFFIX}}",
+    "contact_email": "publisher-email@example.com",
+    "namespace": "${{NAMESPACE}}",
+    "functions": [
+        {
+            "name": "Fabric_DataAgent",
+            "description": "Fabric Data Agent for WEF DEMO",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "userQuestion": {
+                        "description": "Natural language question that can be answered by the Data Agent.",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "userQuestion"
+                ]
+            }
+        },
+        {
+            "name": "Foundry_IQ",
+            "description": "Foundry IQ for WEF DEMO",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "userQuestion": {
+                        "description": "Natural language question that can be answered by Foundry IQ.",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "userQuestion"
+                ]
+            }
+        }
+    ],
+    "runtimes": [
+        {
+            "type": "RemoteMCPServer",
+            "spec": {
+                "url": "${{FABRIC_AGENT_MCP_ENDPOINT}}",
+                "enable_dynamic_discovery": false
+            },
+            "run_for_functions": [
+                "Fabric_DataAgent"
+            ]
+        },
+        {
+            "type": "RemoteMCPServer",
+            "spec": {
+                "url": "${{FOUNDRY_IQ_ENDPOINT}}",
+                "enable_dynamic_discovery": false
+            },
+            "run_for_functions": [
+                "Foundry_IQ"
+            ]
+        }
+    ]
+}
