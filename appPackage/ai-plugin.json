@@ -1,5 +1,5 @@
 {
-    "$schema": "https://aka.ms/json-schemas/copilot-extensions/v2.1/plugin.schema.json",
+    "$schema": "https://developer.microsoft.com/json-schemas/copilot/plugin/v2.4/schema.json",
     "schema_version": "v2.4",
     "name_for_human": "${{NAME_FOR_HUMAN}}",
     "description_for_human": "${{NAME_FOR_HUMAN}}${{APP_NAME_SUFFIX}}",
@@ -8,7 +8,7 @@
     "functions": [
         {
             "name": "Fabric_DataAgent",
-            "description": "Fabric Data Agent for WEF DEMO",
+            "description": "Agent to answer questions about sales and media spend for brand, categories, and markets.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -23,19 +23,14 @@
             }
         },
         {
-            "name": "Foundry_IQ",
-            "description": "Foundry IQ for WEF DEMO",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "userQuestion": {
-                        "description": "Natural language question that can be answered by Foundry IQ.",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "userQuestion"
-                ]
+            "name": "knowledge_base_retrieve",
+            "description": "Knowledge Base Retrieval tool to ask questions. Provide this tool with a list of \"knowledgeAgentIntents\" so that the knowledge base can reason over what information should be retrieved from its knowledge sources.",
+            "states": {
+                "reasoning": {
+                    "instructions": [
+                        "***Always*** ensure tool argument is structured as {\"request\":{\"knowledgeAgentIntents\":[\"<intent from prompt>\"]}} where knowledgeAgentIntents is an ARRAY of strings"
+                    ]
+                }
             }
         }
     ],
@@ -52,12 +47,47 @@
         },
         {
             "type": "RemoteMCPServer",
+            "auth": {
+                "type": "OAuthPluginVault",
+                "reference_id": "${{MCP_DA_AUTH_ID_AZURE}}"
+            },
             "spec": {
                 "url": "${{FOUNDRY_IQ_ENDPOINT}}",
-                "enable_dynamic_discovery": false
+                "enable_dynamic_discovery": false,
+                "x-mcp_tool_description": {
+                    "tools": [
+                        {
+                            "name": "knowledge_base_retrieve",
+                            "description": "Knowledge Base Retrieval tool to ask questions. Provide this tool with a list of \"knowledgeAgentIntents\" so that the knowledge agent can reason over what information should be retrieved from its knowledge sources. Here is a sample input - #SAMPLE INPUT START# KnowledgeAgentIntents- [\"This is intent 1\", \"This is intent 2\", \"This is intent 3\"] #SAMPLE INPUT END#.  Description of this knowledge base - Contains Survey data.",
+                            "inputSchema": {
+                                "type": "object",
+                                "properties": {
+                                    "request": {
+                                        "description": "Provide this tool with a list of \"knowledgeAgentIntents\" so that the knowledge base can reason over what information should be retrieved from its knowledge sources.",
+                                        "type": "object",
+                                        "properties": {
+                                            "knowledgeAgentIntents": {
+                                                "type": [
+                                                    "array",
+                                                    "null"
+                                                ],
+                                                "items": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "request"
+                                ]
+                            }
+                        }
+                    ]
+                }
             },
             "run_for_functions": [
-                "Foundry_IQ"
+                "knowledge_base_retrieve"
             ]
         }
     ]
