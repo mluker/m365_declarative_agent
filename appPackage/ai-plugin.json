@@ -8,19 +8,7 @@
     "functions": [
         {
             "name": "Fabric_DataAgent",
-            "description": "Agent to answer questions about sales and media spend for brand, categories, and markets.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "userQuestion": {
-                        "description": "Natural language question that can be answered by the Data Agent.",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "userQuestion"
-                ]
-            }
+            "description": "Agent to answer questions about sales and media spend for brand, categories, and markets."
         },
         {
             "name": "knowledge_base_retrieve",
@@ -39,7 +27,26 @@
             "type": "RemoteMCPServer",
             "spec": {
                 "url": "${{FABRIC_AGENT_MCP_ENDPOINT}}",
-                "enable_dynamic_discovery": false
+                "x-mcp_tool_description": {
+                    "tools": [
+                        {
+                            "name": "Fabric_DataAgent",
+                            "description": "Agent to answer questions about sales and media spend for brand, categories, and markets.",
+                            "inputSchema": {
+                                "type": "object",
+                                "properties": {
+                                    "userQuestion": {
+                                        "description": "Natural language question that can be answered by the Data Agent.",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "userQuestion"
+                                ]
+                            }
+                        }
+                    ]
+                }
             },
             "run_for_functions": [
                 "Fabric_DataAgent"
@@ -49,7 +56,7 @@
             "type": "RemoteMCPServer",
             "auth": {
                 "type": "OAuthPluginVault",
-                "reference_id": "${{MCP_DA_AUTH_ID_AZURE}}"
+            "reference_id": "${{MCP_DA_AUTH_ID_AZURE}}"
             },
             "spec": {
                 "url": "${{FOUNDRY_IQ_ENDPOINT}}",
