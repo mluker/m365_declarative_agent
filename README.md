@@ -1,6 +1,138 @@
-# Overview of the Declarative Agent template
+# Overview
 
-With the declarative agent, you can build a custom version of Copilot that can be used for specific scenarios, such as for specialized knowledge, implementing specific processes, or simply to save time by reusing a set of AI prompts. For example, a grocery shopping Copilot declarative agent can be used to create a grocery list based on a meal plan that you send to Copilot.
+This repo represents a Declarative M365 Copilot Agent (referenced as DA from this point on) with access to a Fabric Data agent (Fabric IQ) and AI Search (Foundry IQ) over MCP endpoints. Foundry IQ and Fabric IQ connections are configured in the file `ai-plugin.json`
+
+## Teams App
+
+A [Teams app](https://dev.teams.microsoft.com/apps) will be created when `provision` is used from the vscode M365 Agent Toolkit extension. You do not need to change any settings on this app in the portal.
+
+![alt text](images/provision.png)
+
+OAuth will have to be configured for use later ([Entra SSO](https://learn.microsoft.com/en-us/microsoft-365-copilot/extensibility/api-plugin-authentication) doesn't seem work) in the [Teams dev portal](https://dev.teams.microsoft.com/tools/oauth-configuration).
+
+The OAuth settings are:
+
+| Setting                | Value                                                                   |
+|------------------------|-------------------------------------------------------------------------|
+| base url               | `https://<search-resource>.search.windows.net`                          |
+| Authorization endpoint | `https://login.microsoftonline.com/<tenant>/oauth2/v2.0/authorize`      |
+| Token endpoint         | `https://login.microsoftonline.com/<tenant>/oauth2/v2.0/token`          |
+| Refresh endpoint       | `https://login.microsoftonline.com/<tenant>/oauth2/v2.0/token`          |
+| scope                  | `https://search.azure.com/user_impersonation`                           |
+
+
+## Entra app registration
+
+An app registration with a scope is needed for OAuth:
+
+- A new `API Permissions` scope of:
+    - APIs my Organizations uses
+    - Delegated Permissions
+    - Azure Cognitive Search
+    - user_impersonation
+- A client/secret will also be needed and created under `Certificates & secrets`. This will be used when configuring OAuth in the [Teams dev portal](https://dev.teams.microsoft.com/tools/oauth-configuration) which will generate a `OAuth client registration ID` to be used in the DA configuration for the Foundry IQ MCP connection.
+
+The app registration does not need any RBAC permissions as it's only used to retrieve a token on behalf of the current user.
+
+## Foundry IQ
+
+While it's technically Foundry IQ, none of this goes through or uses Foundry. Foundry IQ (knowledge base) is accessed straight through Azure AI Search MCP endpoint.
+
+For some reason the instructions need to specify the schema (the knowledgeAgentIntents) for the MCP call, otherwise, the MCP call will be malformed. This is being investigated.
+
+![alt text](images/mcp-instructions.png)
+
+- The Foundry IQ MCP endpoint is the Search Domain + Knowledge base `https://<search-resource>.search.windows.net/knowledgebases/<knowledgebase>/mcp?api-version=2025-11-01-preview`.
+- Foundry IQ is configured to use the OAuth entry created earlier, the value needed from the Teams dev portal for the DA is `OAuth client registration ID`.
+
+The OAuth settings are:
+
+| Setting                | Value                                                                   |
+|------------------------|-------------------------------------------------------------------------|
+| base url               | `https://<search-resource>.search.windows.net`                          |
+| Authorization endpoint | `https://login.microsoftonline.com/<tenant>/oauth2/v2.0/authorize`      |
+| Token endpoint         | `https://login.microsoftonline.com/<tenant>/oauth2/v2.0/token`          |
+| Refresh endpoint       | `https://login.microsoftonline.com/<tenant>/oauth2/v2.0/token`          |
+| scope                  | `https://search.azure.com/user_impersonation`                           |
+
+
+The OAuth configuration:
+
+![alt text](images/da-oauth.png)
+
+## Fabric IQ
+
+- Fabric IQ (Fabric Data agent) MCP endpoint points to the Fabric Data Agent resource using `https://api.fabric.microsoft.com/v1/workspaces/<workspace-id>/dataagents/<data-agent-id>/__private/singletoolmcp`.
+- This does not require OAuth to be configured as Fabric Data Agent MCP handles this differently from Foundry IQ MCP.
+
+Note: This is NOT the same URL you will find in the Fabric Portal for a given Data Agent. We were given this URL to use as it offered more features.
+
+## Azure RBAC
+
+Permissions must be added for all users who need to use the M365 Agent:
+
+AI Search Resource:
+
+- Azure AI User
+- Search Index Data Reader
+
+## M365 Agent Toolkit
+
+- Once the agent is provisioned it will be available using [M365 Copilot Chat ](https://m365.cloud.microsoft/chat/).
+- Any time a new version is provisioned, the version MUST be incremented which can be found in the .env file `TEAMS_APP_VERSION`.
+- Any time a new version is provisioned, there can be 1-30 minute delay for the changes to be available. The Agent will show up right away but the tools (MCP servers) will possibly be using an older version. While testing I recommend putting the version (.env `NAME_FOR_HUMAN`) in the title of the Agent so you know whats actually being used.
+
+## M365 Copilot Chat
+
+Commands to enter in the chat:
+
+| Command                | Value                            |
+|------------------------|----------------------------------|
+| /status                | Check if I’m active and ready.   |
+| /state                 | Confirm system state             |
+| /stat                  | Quick system status.             |
+| /dstat                 | Detailed system diagnostics.     |
+| -developer             | Enable developer mode            |
+
+## MCP
+
+Some general MCP information one might find useful when working on a DA.
+
+Foundry IQ MCP endpoints:
+
+### List MCP Tools
+
+POST https://<search-resource>.search.windows.net/knowledgebases/<knowledgebase>/mcp?api-version=2025-11-01-preview
+
+```json
+{
+	"jsonrpc": "2.0",
+	"method": "tools/list",
+	"id": 1
+}
+```
+
+### Query Knowledge base
+
+POST https://<search-resource>.search.windows.net/knowledgebases/<knowledgebase>/mcp?api-version=2025-11-01-preview
+
+```json
+{
+	"jsonrpc": "2.0",
+	"method": "tools/call",
+	"id": 1,
+	"params": {
+		"name": "knowledge_base_retrieve",
+		"arguments": {
+			"request": {
+				"knowledgeAgentIntents": [
+					"Some question about the indexed data"
+				]
+			}
+		}
+	}
+}
+```
 
 ## Get started with the template
 
@@ -13,13 +145,7 @@ With the declarative agent, you can build a custom version of Copilot that can b
 > - [Microsoft 365 Agents Toolkit Visual Studio Code Extension](https://aka.ms/teams-toolkit) version 5.0.0 and higher or [Microsoft 365 Agents Toolkit CLI](https://aka.ms/teamsfx-toolkit-cli)
 > - [Microsoft 365 Copilot license](https://learn.microsoft.com/microsoft-365-copilot/extensibility/prerequisites#prerequisites)
 
-![image](https://github.com/user-attachments/assets/51a221bb-a2c6-4dbf-8009-d2aa20a1638f)
-
-1. First, select the Microsoft 365 Agents Toolkit icon on the left in the VS Code toolbar.
-2. In the Account section, sign in with your [Microsoft 365 account](https://docs.microsoft.com/microsoftteams/platform/toolkit/accounts) if you haven't already.
-3. Select `Preview Local in Copilot (Edge)` or `Preview Local in Copilot (Chrome)` from the launch configuration dropdown.
-4. Select your declarative agent from the `Copilot` app.
-5. Ask a question to your declarative agent and it should respond based on the instructions provided.
+You can also provision the DA to M365 Copilot for testing vs running locally.
 
 ## What's included in the template
 
