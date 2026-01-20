@@ -45,17 +45,6 @@ For some reason the instructions need to specify the schema (the knowledgeAgentI
 - The Foundry IQ MCP endpoint is the Search Domain + Knowledge base `https://<search-resource>.search.windows.net/knowledgebases/<knowledgebase>/mcp?api-version=2025-11-01-preview`.
 - Foundry IQ is configured to use the OAuth entry created earlier, the value needed from the Teams dev portal for the DA is `OAuth client registration ID`.
 
-The OAuth settings are:
-
-| Setting                | Value                                                                   |
-|------------------------|-------------------------------------------------------------------------|
-| base url               | `https://<search-resource>.search.windows.net`                          |
-| Authorization endpoint | `https://login.microsoftonline.com/<tenant>/oauth2/v2.0/authorize`      |
-| Token endpoint         | `https://login.microsoftonline.com/<tenant>/oauth2/v2.0/token`          |
-| Refresh endpoint       | `https://login.microsoftonline.com/<tenant>/oauth2/v2.0/token`          |
-| scope                  | `https://search.azure.com/user_impersonation`                           |
-
-
 The OAuth configuration:
 
 ![alt text](images/da-oauth.png)
