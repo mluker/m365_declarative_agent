@@ -71,18 +71,6 @@ AI Search Resource:
 - Any time a new version is provisioned, the version MUST be incremented which can be found in the .env file `TEAMS_APP_VERSION`.
 - Any time a new version is provisioned, there can be 1-30 minute delay for the changes to be available. The Agent will show up right away but the tools (MCP servers) will possibly be using an older version. While testing I recommend putting the version (.env `NAME_FOR_HUMAN`) in the title of the Agent so you know whats actually being used.
 
-## M365 Copilot Chat
-
-Commands to enter in the chat:
-
-| Command                | Value                            |
-|------------------------|----------------------------------|
-| /status                | Check if I’m active and ready.   |
-| /state                 | Confirm system state             |
-| /stat                  | Quick system status.             |
-| /dstat                 | Detailed system diagnostics.     |
-| -developer             | Enable developer mode            |
-
 ## MCP
 
 Some general MCP information one might find useful when working on a DA.
@@ -122,6 +110,50 @@ POST https://<search-resource>.search.windows.net/knowledgebases/<knowledgebase>
 	}
 }
 ```
+
+## Learnings
+
+### Best Practices for Semantic Model & Data Agent configuration
+
+- Prep Data for AI & Verified Answers: Essential for accurate DAX queries and reliable responses.
+- Schema & Dependency Selection: Include all relevant tables/columns; use tools like Semantic Link Labs.
+- Instructions Placement: Logic should reside in semantic model’s prep for AI, not data agent instructions.
+- Managing Multiple Use Cases: Consider composite or duplicate semantic models for specialized instructions.
+- Currency & Localization: Include currency columns and specify usage; acknowledge current limitations.
+
+### Improving Data Agent instructions & Lake house metadata
+
+- Use descriptive, plain-English column names and detailed descriptions for columns/measures/tables.
+- Provide explicit lists of valid values and clear instructions in metadata.
+- Address instruction character limits with workarounds (e.g., separate metadata tables).
+- Commit to iterative testing and refinement for consistent results.
+
+### Prompt actions
+
+| Command                | Value                            |
+|------------------------|----------------------------------|
+| /status                | Check if I’m active and ready.   |
+| /state                 | Confirm system state             |
+| /stat                  | Quick system status.             |
+| /dstat                 | Detailed system diagnostics.     |
+| -developer             | Enable developer mode            |
+
+### Declarative Agents (m356)
+
+- Fabric MCP URL #1 (proper one to use) `https://api.fabric.microsoft.com/v1/workspaces/<workspace-guid>/dataagents/<artifact-guid>/__private/singletoolmcp`.
+- Fabric MCP URL #2 (do not use) This MCP URL works but prompts for auth and we were told not to use it `https://api.fabric.microsoft.com/v1/mcp/workspaces/<workdpace-id>/dataagents/<artifact-id>/agent`
+- MCP tool calls are on a new thread so context is lost for each new MCP call. Copilot must maintain the context as needed.
+- MCP calls are limited to 100 seconds due to the underlying HTTP client settings.
+
+### Fabric Data Agents
+
+- Fabric Data Agents running against semantic models work best when the semantic model has been correctly prepared using the 'prep for AI' wizard
+- Data-specific annotations (schemas, indexes, etc. ) in fabric Data Agent instructions are mostly ignored
+- You can download the Declarative Agent config files for an agent by adding `&debugdataAgentM365Download=1` to the end of the agent url, hitting enter, and then looking in settings for a download button.
+
+### Documentation deficiencies/updates
+
+- SDK-based Fabric Data Agent evaluations can only be run in a Fabric notebook due to a Python module dependency that cannot be resolved externally. The documentation should clarify this, as it looks like you can run the evaluations from anywhere.
 
 ## Get started with the template
 
